@@ -3,20 +3,61 @@ import dynamic from "next/dynamic";
 import Head from "next/head";
 import Image from "next/image";
 import React, { Suspense, useEffect } from "react";
-import { Hydrate, useMutation, useQuery } from "react-query";
+import { Hydrate, useMutation, useQueries, useQuery } from "react-query";
 import Exam from "../components/exam";
+import Exam2 from "../components/exam2";
 import loading from "../components/loading";
 // import Exam from "../components/exam";
 import Loading from "../components/loading";
-import { fetData, putData } from "../modules/api";
-import { ExamType } from "../modules/type";
+import { fetchJobData, fetchOneUser, fetData, putData } from "../modules/api";
+import { ExamType, ExamType2, ExamType3 } from "../modules/type";
 import { queryClient } from "./_app";
 
 const Home: NextPage = () => {
-    const { isLoading, data } = useQuery<ExamType>("exam", fetData, {
-        refetchOnWindowFocus: false,
-        retry: 0,
-    });
+    const { isLoading: firstLoading, data: firstData } = useQuery<ExamType>(
+        "exam",
+        fetData,
+        {
+            refetchOnWindowFocus: false,
+            retry: 0,
+        },
+    );
+
+    const { isLoading: jobLoading, data: jobData } = useQuery<ExamType2>(
+        "job",
+        fetchJobData,
+        {
+            refetchOnWindowFocus: false,
+            retry: 0,
+            enabled: !!firstData,
+        },
+    );
+
+    const { isLoading: userLoading, data: userData } = useQuery<ExamType3>(
+        ["user", "1234"],
+        (params) => {
+            return fetchOneUser(params.queryKey[1]);
+        },
+        {
+            refetchOnWindowFocus: false,
+            retry: 0,
+            enabled: !!jobData,
+        },
+    );
+    // const result = useQueries([
+    //     {
+    //         queryKey: "exam",
+    //         queryFn: fetData,
+    //         refetchOnWindowFocus: false,
+    //         retry: 0,
+    //     },
+    //     {
+    //         queryKey: "job",
+    //         queryFn: fetchJobData,
+    //         refetchOnWindowFocus: false,
+    //         retry: 0,
+    //     },
+    // ]);
 
     const putEmail = useMutation(putData, {
         onSettled: () => {
@@ -26,10 +67,6 @@ const Home: NextPage = () => {
             queryClient.invalidateQueries("exam");
         },
     });
-
-    if (isLoading) {
-        return <Loading />;
-    }
 
     return (
         <div>
@@ -41,14 +78,26 @@ const Home: NextPage = () => {
                 />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
-
-            <Exam data={data} />
+            {!firstLoading ? (
+                <Exam data={firstData} />
+            ) : (
+                <Loading seq="first" />
+            )}
             <button
                 onClick={() => {
                     putEmail.mutate();
                 }}>
                 email 변경
             </button>
+            {!jobLoading ? <Exam2 data={jobData} /> : <Loading seq="job" />}
+            {!userLoading ? (
+                <>
+                    <p>name : {userData?.name}</p>
+                    <p>email : {userData?.email}</p>
+                </>
+            ) : (
+                <Loading seq="user" />
+            )}
         </div>
     );
 };

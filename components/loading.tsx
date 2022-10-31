@@ -1,8 +1,12 @@
 import { useEffect } from "react";
 
-function Loading() {
+interface LoadingProps {
+    seq: string;
+}
+
+function Loading({ seq }: LoadingProps) {
     useEffect(() => {
-        console.log("....loading");
+        console.log(`${seq}....loading`);
     }, []);
 
     return <div>{<p>.....로딩중</p>}</div>;
