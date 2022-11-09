@@ -78,11 +78,12 @@ const Home: NextPage = () => {
                 />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
-            {!firstLoading ? (
+            {/* {!firstLoading ? (
                 <Exam data={firstData} />
             ) : (
                 <Loading seq="first" />
-            )}
+            )} */}
+            <Exam data={firstData} />
             <button
                 onClick={() => {
                     putEmail.mutate();

@@ -16,12 +16,19 @@ export const queryClient = new QueryClient({
             console.log("success : ", data);
         },
     }),
+    defaultOptions: {
+        queries: {
+            suspense: true,
+        },
+    },
 });
 
 function MyApp({ Component, pageProps }: AppProps) {
     return (
         <QueryClientProvider client={queryClient}>
-            <Component {...pageProps} />
+            <Suspense fallback={<div>...로딩중</div>}>
+                <Component {...pageProps} />
+            </Suspense>
         </QueryClientProvider>
     );
 }
